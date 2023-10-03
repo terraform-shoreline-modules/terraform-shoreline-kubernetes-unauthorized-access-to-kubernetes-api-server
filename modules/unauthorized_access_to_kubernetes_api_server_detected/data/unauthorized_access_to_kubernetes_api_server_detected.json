@@ -1,0 +1,110 @@
+{
+  "name": "unauthorized_access_to_kubernetes_api_server_detected",
+  "description": "This incident type is characterized by the detection of unauthorized access to the Kubernetes API server. This unauthorized access potentially enables attackers to manipulate cluster resources. Such incidents can lead to serious consequences, as unauthorized access allows attackers to make changes to the Kubernetes cluster, which may compromise the security and integrity of the entire system. Therefore, it is crucial to promptly detect and address such incidents to ensure the security and proper functioning of the Kubernetes cluster.",
+  "params": [
+    {
+      "name": "PATH_TO_KUBECONFIG",
+      "value": ""
+    },
+    {
+      "name": "API_SERVER_ENDPOINT",
+      "value": ""
+    },
+    {
+      "name": "ROLE_NAME",
+      "value": ""
+    },
+    {
+      "name": "KUBE_APISERVER_POD_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Unauthorized Access to Kubernetes API Server Detected\nThis incident type is characterized by the detection of unauthorized access to the Kubernetes API server. This unauthorized access potentially enables attackers to manipulate cluster resources. Such incidents can lead to serious consequences, as unauthorized access allows attackers to make changes to the Kubernetes cluster, which may compromise the security and integrity of the entire system. Therefore, it is crucial to promptly detect and address such incidents to ensure the security and proper functioning of the Kubernetes cluster."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the status of the Kubernetes API server"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl cluster-info`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Get a list of all the pods running in the default namespace"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl get pods`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the logs of the kube-apiserver container to see if there are any suspicious activities"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl logs -n kube-system ${KUBE_APISERVER_POD_NAME} kube-apiserver`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Kubernetes audit logs to see if there were any unauthorized API requests"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl get auditlog -o json | jq '.items[] | select(.user.username != \"system:serviceaccount:kube-system:kube-apiserver\").requestURI'`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Kubernetes RBAC configuration to ensure that the correct permissions are in place"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | random=1 | limit=1 | invoke_get_roles()"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Review access controls for the Kubernetes API server and ensure that only authorized users and applications have access."
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | random=1 | limit=1 | invoke_kube_review_access($PATH_TO_KUBECONFIG, $API_SERVER_ENDPOINT, $ROLE_NAME, $NAMESPACE)"
+    }
+  ]
+}
